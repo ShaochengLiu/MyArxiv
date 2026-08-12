@@ -109,12 +109,13 @@ index 1cc3300..bce806b 100644
 +                    .and_hms_opt(0, 0, 0)
 +                    .expect("midnight is a valid time")
 +                    .and_utc();
-+                daily_data
++                let papers = daily_data
 +                    .entry(date)
 +                    .or_default()
 +                    .entry(subject.clone())
-+                    .or_default()
-+                    .insert(arxiv);
++                    .or_default();
++                papers.retain(|paper| paper.id != arxiv.id);
++                papers.insert(arxiv);
 +            }
 +        }
 +    }
