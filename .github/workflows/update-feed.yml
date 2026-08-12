@@ -29,7 +29,7 @@ jobs:
         run: |
           sed -i 's#http://export.arxiv.org#https://export.arxiv.org#' \
             .arxivfeed/src/core/query.rs
-          cargo build --release --locked --manifest-path .arxivfeed/Cargo.toml
+          cargo build --release --manifest-path .arxivfeed/Cargo.toml
           cp .arxivfeed/target/release/arxivfeed ./arxivfeed
           chmod +x arxivfeed
       - name: Build rss
