@@ -91,3 +91,32 @@ index 7105caf..66f9e4a 100644
          let mut querys = Vec::new();
          if !self.search_query.is_empty() {
              querys.push(format!("search_query={}", self.search_query));
+diff --git a/src/main.rs b/src/main.rs
+index 1cc3300..bce806b 100644
+--- a/src/main.rs
++++ b/src/main.rs
+@@ -50 +50,23 @@ async fn main() -> Result<()> {
+-    let raw_data = raw_data
++    // RSS entries carry per-paper timestamps. Normalize both cached and newly
++    // fetched entries to UTC midnight so the UI groups them by calendar day.
++    let mut daily_data: ArxivCollection = Default::default();
++    for (_, subjects) in raw_data {
++        for (subject, papers) in subjects {
++            for arxiv in papers {
++                let date = arxiv
++                    .updated
++                    .date_naive()
++                    .and_hms_opt(0, 0, 0)
++                    .expect("midnight is a valid time")
++                    .and_utc();
++                daily_data
++                    .entry(date)
++                    .or_default()
++                    .entry(subject.clone())
++                    .or_default()
++                    .insert(arxiv);
++            }
++        }
++    }
++
++    let raw_data = daily_data

@@ -27,7 +27,7 @@ jobs:
           path: .arxivfeed
       - name: Build HTTPS-compatible ArxivFeed
         run: |
-          git -C .arxivfeed apply ../patches/arxivfeed-rss.patch
+          git -C .arxivfeed apply --unidiff-zero ../patches/arxivfeed-rss.patch
           cargo build --release --manifest-path .arxivfeed/Cargo.toml
           cp .arxivfeed/target/release/arxivfeed ./arxivfeed
           chmod +x arxivfeed
