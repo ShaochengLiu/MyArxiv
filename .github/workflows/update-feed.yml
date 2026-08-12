@@ -23,12 +23,12 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: NotCraft/ArxivFeed
-          ref: v0.1.4
+          ref: 666803907c51655b22dd541ef2cdc11e21309def
           path: .arxivfeed
       - name: Build HTTPS-compatible ArxivFeed
         run: |
           sed -i 's#http://export.arxiv.org#https://export.arxiv.org#' \
-            .arxivfeed/src/query.rs
+            .arxivfeed/src/core/query.rs
           cargo build --release --locked --manifest-path .arxivfeed/Cargo.toml
           cp .arxivfeed/target/release/arxivfeed ./arxivfeed
           chmod +x arxivfeed
