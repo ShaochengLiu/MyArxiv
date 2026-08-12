@@ -95,7 +95,7 @@ diff --git a/src/main.rs b/src/main.rs
 index 1cc3300..bce806b 100644
 --- a/src/main.rs
 +++ b/src/main.rs
-@@ -50 +50,23 @@ async fn main() -> Result<()> {
+@@ -50 +50,24 @@ async fn main() -> Result<()> {
 -    let raw_data = raw_data
 +    // RSS entries carry per-paper timestamps. Normalize both cached and newly
 +    // fetched entries to UTC midnight so the UI groups them by calendar day.
