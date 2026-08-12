@@ -18,9 +18,9 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Check out ArxivFeed
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: NotCraft/ArxivFeed
           ref: v0.1.4
@@ -28,7 +28,7 @@ jobs:
       - name: Build HTTPS-compatible ArxivFeed
         run: |
           sed -i 's#http://export.arxiv.org#https://export.arxiv.org#' \
-            .arxivfeed/src/core/query.rs
+            .arxivfeed/src/query.rs
           cargo build --release --locked --manifest-path .arxivfeed/Cargo.toml
           cp .arxivfeed/target/release/arxivfeed ./arxivfeed
           chmod +x arxivfeed
