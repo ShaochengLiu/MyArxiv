@@ -177,6 +177,12 @@ cache_url = "https://mlnlp-world.github.io/MyArxiv/cache.json"
   - 若使用默认的Github Pages，那么会在`username.github.io`域名上托管该项目，项目具体地址为`username.github.io/reponame`，就要将`cache_url`设置为`username.github.io/reponame/cache.json`。
   - 若使用其他域名`yourarxivdomain`托管该项目，则要将`cache_url`使用对应的网址进行替换，设置为`yourarxivwebsite/cache.json`。
 
+### 会议标签
+
+每日构建会运行 `scripts/enrich_conferences.py`，从 arXiv 分类列表页读取作者填写的
+Comments，并按 `scripts/config.rhai` 中的 `conferences` 列表识别会议。只有 Comments
+明确包含会议名称的论文才会显示会议标签；未公开投稿/录用信息的论文不会猜测标签。
+
 <h4 id="Arxiv-domain">2. Arxiv领域偏好设置</h4>
 
 `config.toml`配置文件中，Arxiv领域偏好设置部分如下图所示：

@@ -109,5 +109,9 @@ dist
 # DynamoDB Local files
 .dynamodb/
 
+# Local checkout created while testing the pinned ArxivFeed build.
+.arxivfeed/
+__pycache__/
+
 # TernJS port file
 .tern-port

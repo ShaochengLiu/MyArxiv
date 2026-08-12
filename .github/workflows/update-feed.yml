@@ -33,6 +33,8 @@ jobs:
           chmod +x arxivfeed
       - name: Build rss
         run: ./arxivfeed
+      - name: Add conference metadata
+        run: python3 scripts/enrich_conferences.py
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
