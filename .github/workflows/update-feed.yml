@@ -14,35 +14,28 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
-      - uses: actions/checkout@v2
-      - name: Download ArxivFeed
-        env:
-          GITHUB_PAT: ${{ github.token }}
-          REPO: "NotCraft/ArxivFeed"
-          VERSION: "latest"
-          MATCH: "arxivfeed-.+-x86_64-unknown-linux-musl.tar.gz$"
-          RENAME: "arxivfeed.tgz"
-        shell: bash
+      - uses: actions/checkout@v4
+      - name: Check out ArxivFeed
+        uses: actions/checkout@v4
+        with:
+          repository: NotCraft/ArxivFeed
+          ref: v0.1.4
+          path: .arxivfeed
+      - name: Build HTTPS-compatible ArxivFeed
         run: |
-          curl -sL --fail \
-            -H "Accept: application/vnd.github.v3+json" \
-            -H "Authorization: Bearer ${GITHUB_PAT}" \
-              "https://api.github.com/repos/${REPO}/releases/${VERSION}" \
-              | jq -r ".assets | .[] | select(.name | test(\"${MATCH}\")) | .url" \
-              | tee asset.url
-          curl -sL --fail \
-            -H "Accept: application/octet-stream" \
-            -H "Authorization: Bearer ${GITHUB_PAT}" \
-              -o "${RENAME}" \
-              "$(cat asset.url)"
-          tar -zxvf arxivfeed.tgz --strip-components 1 $(tar tf arxivfeed.tgz | grep /arxivfeed)
+          sed -i 's#http://export.arxiv.org#https://export.arxiv.org#' \
+            .arxivfeed/src/core/query.rs
+          cargo build --release --locked --manifest-path .arxivfeed/Cargo.toml
+          cp .arxivfeed/target/release/arxivfeed ./arxivfeed
           chmod +x arxivfeed
       - name: Build rss
         run: ./arxivfeed
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+        uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./target
