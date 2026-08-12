@@ -1,0 +1,93 @@
+diff --git a/src/core/fetch.rs b/src/core/fetch.rs
+index c17b32f..0e5d72b 100644
+--- a/src/core/fetch.rs
++++ b/src/core/fetch.rs
+@@ -77,7 +77,11 @@ fn parse_data(body: String) -> Result<Vec<Arxiv>> {
+                 }
+                 "id" => {
+                     if let XmlEvent::Characters(id) = parser.next()? {
+-                        arxiv.id = id;
++                        arxiv.id = if let Some(value) = id.strip_prefix("oai:arXiv.org:") {
++                            format!("https://arxiv.org/abs/{}", value)
++                        } else {
++                            id
++                        };
+                     }
+                 }
+                 "updated" => {
+@@ -107,14 +111,33 @@ fn parse_data(body: String) -> Result<Vec<Arxiv>> {
+                         arxiv.authors.push(author);
+                     }
+                 }
+-                "link" => {
+-                    if attributes[0].value == "pdf" {
+-                        arxiv.pdf_url = format!(
+-                            "{}.pdf",
+-                            attributes[1].value.replacen("http", "https", 1).clone()
++                "creator" => {
++                    if let XmlEvent::Characters(authors) = parser.next()? {
++                        arxiv.authors.extend(
++                            authors.split(',').map(|author| author.trim().to_string())
+                         );
+                     }
+                 }
++                "link" => {
++                    let title = attributes.iter()
++                        .find(|attr| attr.name.local_name == "title")
++                        .map(|attr| attr.value.as_str());
++                    let rel = attributes.iter()
++                        .find(|attr| attr.name.local_name == "rel")
++                        .map(|attr| attr.value.as_str());
++                    let href = attributes.iter()
++                        .find(|attr| attr.name.local_name == "href")
++                        .map(|attr| attr.value.as_str());
++                    if title == Some("pdf") {
++                        if let Some(href) = href {
++                            arxiv.pdf_url = format!("{}.pdf", href.replacen("http", "https", 1));
++                        }
++                    } else if rel == Some("alternate") {
++                        if let Some(href) = href {
++                            arxiv.pdf_url = href.replace("/abs/", "/pdf/") + ".pdf";
++                        }
++                    }
++                }
+                 "comment" => {
+                     if let XmlEvent::Characters(comment) = parser.next()? {
+                         arxiv.comment = Some(comment);
+diff --git a/src/core/query.rs b/src/core/query.rs
+index 7105caf..66f9e4a 100644
+--- a/src/core/query.rs
++++ b/src/core/query.rs
+@@ -4,7 +4,7 @@ use super::structs::{ArxivQuery, ArxivQueryBuilder};
+ impl ArxivQueryBuilder {
+     pub fn new() -> Self {
+         ArxivQueryBuilder {
+-            base_url: "http://export.arxiv.org/api/query?".to_string(),
++            base_url: "https://export.arxiv.org/api/query?".to_string(),
+             ..ArxivQueryBuilder::default()
+         }
+     }
+@@ -22,6 +22,13 @@ impl ArxivQueryBuilder {
+     }
+     /// Store the argument value in search_query.
+     pub fn search_query(&self, search_query: &str) -> Self {
++        if let Some(category) = search_query.strip_prefix("cat:") {
++            return ArxivQueryBuilder {
++                base_url: format!("https://rss.arxiv.org/atom/{}", category),
++                search_query: String::new(),
++                ..self.clone()
++            };
++        }
+         ArxivQueryBuilder {
+             search_query: search_query.to_string(),
+             ..self.clone()
+@@ -67,6 +74,9 @@ impl ArxivQueryBuilder {
+ impl ArxivQuery {
+     /// Generate a URL string.
+     pub fn to_url(&self) -> String {
++        if self.base_url.starts_with("https://rss.arxiv.org/") {
++            return self.base_url.clone();
++        }
+         let mut querys = Vec::new();
+         if !self.search_query.is_empty() {
+             querys.push(format!("search_query={}", self.search_query));
